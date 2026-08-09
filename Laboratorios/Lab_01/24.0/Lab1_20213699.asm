@@ -1,7 +1,8 @@
+; Calculador de MCD de tres numeros
 section .data
-    num1 dq 25
-    num2 dq 50
-    num3 dq 100
+    num1 dq 7
+    num2 dq 67
+    num3 dq 33
     temporal dq 0
     result dq 0
 
