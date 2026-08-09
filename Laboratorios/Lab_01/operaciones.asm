@@ -1,186 +1,299 @@
-; falta terminar sueño
+; Programa que permite ingresar dos números y seleccionar una operación:
+; 0: suma, 1: resta, 2: multiplicación, 3: división.
+; El resultado se muestra por consola.
+
 section .data
-    result_msg db "El resultado es: ", 10
-    leng equ $ - input_msg
-    input_msg db "Ingrese el primer numero: "
-    lenf equ $ - input_msg
-    input_msg2 db "Ingrese el segundo numero: "
-    lenh equ $ - input_msg
-    operation_msg db "Seleccione la operacion (0: suma, 1: resta, 2: multiplicacion, 3: division): "
-    leni equ $ - input_msg
+    msg_num1 db "Ingrese el primer numero: "
+    len_num1 equ $ - msg_num1
+
+    msg_num2 db "Ingrese el segundo numero: "
+    len_num2 equ $ - msg_num2
+
+    msg_operation db "Seleccione la operacion (0: suma, 1: resta, 2: multiplicacion, 3: division): "
+    len_operation equ $ - msg_operation
+
+    msg_result db "El resultado es: "
+    len_result equ $ - msg_result
+
+    msg_error db "Error: division entre cero.", 10
+    len_error equ $ - msg_error
+
+    newline db 10
 
 section .bss
-    num1 resd 1
-    num2 resd 1
-    operation resb 1
+    input1 resb 32
+    input2 resb 32
+    input_operation resb 2
+    num1 resq 1
+    num2 resq 1
+    result resq 1
+    digit resb 1
 
 section .text
-    global _start
+global _start
 
 _start:
-	; SYS_WRITE				; impresion del primer mensaje de ingreso
-	mov rax, 1
-	mov rdi, 1
-	mov rsi, input_msg
-	mov rdx, lenf
-	syscall
- 
-    ; Solicitar el primer número
-    ; SYS_READ				; lectura del numero
-	mov rax, 0
-	mov rdi, 0
-	mov rsi, num1
-	mov rdx, 1
-	syscall
 
-	; SYS_WRITE_2				; impresion del segundo mensaje de ingreso
-	mov rax, 1
-	mov rdi, 1
-	mov rsi, input_msg2
-	mov rdx, lenh
-	syscall
- 
-    mov rcx, [num1]
-	sub rcx, 30H	; se le resta 48 para que detecte el numero y no el ASCII
+    ; Solicitar primer número
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, msg_num1
+    mov rdx, len_num1
+    syscall
 
+    ; Leer primer número
+    mov rax, 0
+    mov rdi, 0
+    mov rsi, input1
+    mov rdx, 32
+    syscall
 
+    ; Convertir ASCII a entero
+    mov rsi, input1
+    call ascii_to_int
+    mov [num1], rax
 
-    ; Leer el primer número
-    mov eax, 3
-    mov ebx, 0
-    mov ecx, num1
-    mov edx, 4
-    int 0x80
+    ; Solicitar segundo número
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, msg_num2
+    mov rdx, len_num2
+    syscall
 
-    ; Solicitar el segundo número
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, input_msg2
-    mov edx, 28
-    int 0x80
+    ; Leer segundo número
+    mov rax, 0
+    mov rdi, 0
+    mov rsi, input2
+    mov rdx, 32
+    syscall
 
-    ; Leer el segundo número
-    mov eax, 3
-    mov ebx, 0
-    mov ecx, num2
-    mov edx, 4
-    int 0x80
+    ; Convertir ASCII a entero
+    mov rsi, input2
+    call ascii_to_int
+    mov [num2], rax
 
-    ; Solicitar la operación
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, operation_msg
-    mov edx, 52
-    int 0x80
+    ; Solicitar operación
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, msg_operation
+    mov rdx, len_operation
+    syscall
 
-    ; Leer la operación
-    mov eax, 3
-    mov ebx, 0
-    mov ecx, operation
-    mov edx, 1
-    int 0x80
+    ; Leer operación
+    mov rax, 0
+    mov rdi, 0
+    mov rsi, input_operation
+    mov rdx, 2
+    syscall
 
-    ; Convertir el valor de la operación de ASCII a entero
-    sub byte [operation], '0'
+    ; Convertir ASCII a número
+    movzx rax, byte [input_operation]
+    sub rax, '0'
 
-    ; Realizar la operación según el valor de la operación
-    mov eax, 0
-    mov ebx, [num1]
-    mov ecx, [num2]
-    cmp byte [operation], 0
+    ; Seleccionar operación
+    cmp rax, 0
     je suma
-    cmp byte [operation], 1
+
+    cmp rax, 1
     je resta
-    cmp byte [operation], 2
+
+    cmp rax, 2
     je multiplicacion
-    cmp byte [operation], 3
+
+    cmp rax, 3
     je division
 
-    ; Salir del programa
-    mov eax, 1
-    xor ebx, ebx
-    int 0x80
+
+    ; Si la operación no es válida
+    jmp final
+
+; SUMA
 
 suma:
-    add ebx, ecx
+    mov rax, [num1]
+    add rax, [num2]
+    mov [result], rax
     jmp mostrar_resultado
+
+; RESTA
 
 resta:
-    cmp ebx, ecx
-    jl resta_negativa
-    sub ebx, ecx
+    mov rax, [num1]
+    sub rax, [num2]
+    mov [result], rax
     jmp mostrar_resultado
 
-resta_negativa:
-    sub ecx, ebx
-    mov ebx, ecx
-    jmp mostrar_resultado
+; MULTIPLICACIÓN
 
 multiplicacion:
-    imul ebx, ecx
+    mov rax, [num1]
+    imul rax, [num2]
+    mov [result], rax
     jmp mostrar_resultado
 
+; DIVISIÓN
+
 division:
-    xor edx, edx
-    idiv ecx
+    ; Comprobar división entre cero
+    cmp qword [num2], 0
+    je division_cero
+
+    mov rax, [num1]
+    cqo
+    idiv qword [num2]
+
+    mov [result], rax
     jmp mostrar_resultado
+
+; ERROR: DIVISIÓN ENTRE CERO
+
+division_cero:
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, msg_error
+    mov rdx, len_error
+    syscall
+
+    jmp final
+
+; MOSTRAR RESULTADO
 
 mostrar_resultado:
-    ; Imprimir el resultado
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, result_msg
-    mov edx, 17
-    int 0x80
 
-    ; Imprimir el valor de ebx (resultado)
-    mov eax, 1
-    mov ebx, [ebx]
-    mov ecx, result_msg
-    mov edx, 17
-    int 0x80
+    ; Mostrar mensaje
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, msg_result
+    mov rdx, len_result
+    syscall
 
-test:				; pushea en pila el resultado
-	xor rcx, rcx
-	mov r8, 10	
-	mov rcx, [result]	
-	mov rbx, 0
-	xor rdx, rdx
+    ; Mostrar número
+    mov rax, [result]
+    call print_int
 
-division:
-	mov rax, rcx
-	cmp rax, r8 
-	jl aux
+    ; Salto de línea
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, newline
+    mov rdx, 1
+    syscall
 
-	div r8 ;rdx residuo rax cociente
-	inc rbx
-	push rdx
+    jmp final
 
-	mov rcx, rax
-	jmp division
+ascii_to_int:
+    xor rax, rax
+    xor rcx, rcx
 
-aux:
-	push rax
-	inc rbx
+    ; Comprobar si es negativo
+    cmp byte [rsi], '-'
+    jne convertir_numero
 
-loopprint:			; popea e imprime cad dígito
-	cmp rbx,0
-	je final
-	dec rbx
-	pop rcx
-	
-	add rcx, 30H
-	mov [result], rcx
+    mov r8, 1
+    inc rsi
+    jmp convertir_digitos
 
-	mov rax, 1
-	mov rdi, 1
-	mov rsi, result
-	mov rdx, 1
-	syscall
-	jmp loopprint
- 
-final:			; sale del programa de forma exitosa 
-; SYS_EXIT
-	mov rax, 60
-	mov rdi, 0
-	syscall 
+convertir_numero:
+    xor r8, r8
+
+convertir_digitos:
+    movzx rdx, byte [rsi]
+
+    ; Final de entrada
+    cmp dl, 10
+    je conversion_final
+
+    ; Convertir ASCII a número
+    sub dl, '0'
+
+    ; RAX = RAX * 10 + dígito
+    imul rax, rax, 10
+    add rax, rdx
+
+    inc rsi
+    jmp convertir_digitos
+
+conversion_final:
+    ; Si era negativo
+    cmp r8, 1
+    jne conversion_exit
+
+    neg rax
+
+conversion_exit:
+    ret
+
+print_int:
+
+    ; Comprobar si es negativo
+    cmp rax, 0
+    jge positivo
+
+    ; Imprimir '-'
+    push rax
+
+    mov byte [digit], '-'
+
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, digit
+    mov rdx, 1
+    syscall
+
+    pop rax
+    neg rax
+
+
+positivo:
+    ; Caso especial: número 0
+    cmp rax, 0
+    jne convertir_salida
+
+    mov byte [digit], '0'
+
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, digit
+    mov rdx, 1
+    syscall
+    ret
+
+convertir_salida:
+    xor r8, r8
+    mov rbx, 10
+
+convertir_loop:
+    xor rdx, rdx
+    div rbx
+
+    add dl, '0'
+    push rdx
+    inc r8
+
+    cmp rax, 0
+    jne convertir_loop
+
+
+imprimir_loop:
+    cmp r8, 0
+    je imprimir_fin
+
+    pop rdx
+    mov [digit], dl
+
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, digit
+    mov rdx, 1
+    syscall
+
+    dec r8
+    jmp imprimir_loop
+
+
+imprimir_fin:
+    ret
+
+final:
+    mov rax, 60
+    xor rdi, rdi
+    syscall
