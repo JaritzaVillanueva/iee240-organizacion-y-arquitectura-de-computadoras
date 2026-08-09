@@ -1,3 +1,6 @@
+; Calcula el MCD de dos números mediante el algoritmo de Euclides,
+; convierte el resultado a decimal y lo muestra por consola.
+
 section .data
     number1 dd 10       ; Primer número 
     number2 dd 9       ; Segundo número 
