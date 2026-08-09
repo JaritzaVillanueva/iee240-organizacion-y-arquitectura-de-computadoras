@@ -2,6 +2,8 @@ section .data
     array_size equ 4
     array dd 16, 19, 13, 10  ; arreglo
     result dd 0
+	digit db 0
+	newline db 10
 
 section .text
     global _start
@@ -30,7 +32,7 @@ _start:
 test:				; pushea en pila el resultado
 	xor rcx, rcx
 	mov r8, 10	
-	mov rcx, [result]	
+	mov ecx, [result]
 	mov rbx, 0
 	xor rdx, rdx
 
@@ -39,6 +41,7 @@ division:
 	cmp rax, r8 
 	jl aux
 
+	xor rdx, rdx
 	div r8 ;rdx residuo rax cociente
 	inc rbx
 	push rdx
@@ -52,19 +55,28 @@ aux:
 
 loopprint:			; popea e imprime cad dígito
 	cmp rbx,0
-	je final
+	je print_newline
+
 	dec rbx
 	pop rcx
 	
-	add rcx, 30H
-	mov [result], rcx
+	add rcx, '0'
+	mov [digit], cl
 
 	mov rax, 1
 	mov rdi, 1
-	mov rsi, result
+	mov rsi, digit
 	mov rdx, 1
 	syscall
 	jmp loopprint
+
+print_newline:
+	; Imprimir salto de línea
+	mov rax, 1
+	mov rdi, 1
+	mov rsi, newline
+	mov rdx, 1
+	syscall
  
 final:			; sale del programa de forma exitosa 
 ; SYS_EXIT
