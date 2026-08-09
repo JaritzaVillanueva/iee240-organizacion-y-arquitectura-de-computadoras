@@ -1,3 +1,8 @@
+/*
+ * Programa para la multiplicación de una matriz por un vector usando datos de precisión doble (double).
+ * Compara los resultados de una implementación estándar en C contra una función optimizada
+ * en ensamblador con vectorización SIMD (matriz_vector_simd).
+ */
 #include <stdio.h>
 
 void matriz_vector(double *A, double *x, double *b, int N);

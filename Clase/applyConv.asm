@@ -1,11 +1,19 @@
-; rdi = *x -> tiene valores
-; rsi = *h -> tiene valores
-; rdx = *y -> resultado
-; rcx = long_y -> tiene valor
-; r8 = long_k -> tiene valor
-
     global applyConv_asm
     section .text
+
+; ============================================================
+; Implementación en ensamblador de la convolución 1D.
+; La función applyConv_asm procesa los datos de entrada
+; utilizando instrucciones SIMD SSE para realizar las
+; multiplicaciones y acumulaciones de manera vectorizada.
+;
+; Parámetros:
+;   rdi = x       -> vector de entrada
+;   rsi = h       -> kernel/filtro de convolución
+;   rdx = y       -> vector de salida
+;   rcx = long_y  -> longitud de la salida
+;   r8  = long_k  -> longitud del kernel
+; ============================================================
 
 applyConv_asm:
     mov r14, rdi ; i

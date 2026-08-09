@@ -1,3 +1,9 @@
+/*
+ * Programa para medir el SpeedUp en la multiplicación de matrices.
+ * Compara un enfoque iterativo tradicional contra un algoritmo por bloques (cache-friendly)
+ * para analizar el impacto del uso eficiente de la memoria caché.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>

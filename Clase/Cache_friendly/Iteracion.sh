@@ -1,4 +1,4 @@
-ejecutable="./preg2"
+ejecutable="./SpeedUp.out"
 
 # Número de veces que se va a ejecutar el programa
 veces=15
